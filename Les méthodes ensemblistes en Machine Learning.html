@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les méthodes ensemblistes en Machine Learning</title>
+<style>
+:root{--bg:#fafaf8;--card:#fff;--ink:#1d1f27;--mut:#6b7080;--line:#e4e4df;--a:#2f5bea;--b:#e8742a;--c:#1f9d6b;--d:#a63fd1;--code:#f1f1ec;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14151a;--card:#1c1e26;--ink:#ececf1;--mut:#9a9fb0;--line:#2c2f3a;--a:#7b9bff;--b:#ff9a5c;--c:#4cc896;--d:#cf85ee;--code:#101116;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14151a;--card:#1c1e26;--ink:#ececf1;--mut:#9a9fb0;--line:#2c2f3a;--a:#7b9bff;--b:#ff9a5c;--c:#4cc896;--d:#cf85ee;--code:#101116;color-scheme:dark}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+nav{position:fixed;top:0;left:0;bottom:0;width:230px;padding:calc(28px + env(safe-area-inset-top,0px)) 20px 20px;border-right:1px solid var(--line);background:var(--bg);overflow:auto}
+nav b{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav a{display:block;padding:7px 10px;margin:2px 0;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14.5px}
+nav a:hover,nav a.on{background:var(--card);box-shadow:inset 3px 0 var(--a)}
+main{margin-left:230px;max-width:920px;padding:40px 36px 100px}
+header h1{font-size:34px;line-height:1.2;margin:0 0 8px}header p{color:var(--mut);margin:0}
+section{padding-top:56px}h2{font-size:26px;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.grid .card{margin:0}h4{margin:0 0 6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.A{color:var(--a)}.B{color:var(--b)}.C{color:var(--c)}.D{color:var(--d)}
+.dot.A{background:var(--a)}.dot.B{background:var(--b)}.dot.C{background:var(--c)}.dot.D{background:var(--d)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;margin:0}
+pre i{color:var(--mut);font-style:normal}
+.wrap{overflow-x:auto}svg{max-width:100%;height:auto;display:block;margin:auto}svg text{fill:var(--ink);font:13px sans-serif}
+.bx{fill:var(--card);stroke:var(--line);stroke-width:1.5}.ln{stroke:var(--mut);stroke-width:1.5;fill:none}
+button{font:inherit;font-size:14px;padding:7px 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--a)}button.pill{border-radius:99px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:600}
+.bar{height:22px;border-radius:6px;background:var(--a);min-width:2px;transition:width .6s}
+.row{display:grid;grid-template-columns:minmax(150px,230px) 1fr 52px;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.tag{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--mut)}
+.res{font-size:20px;font-weight:700}
+@media(max-width:820px){nav{position:static;width:auto;border:0;padding:16px 16px 0;display:flex;flex-wrap:wrap;gap:4px}nav b{width:100%}main{margin:0;padding:20px 16px 80px}.row{grid-template-columns:110px 1fr 44px}}
+</style>
+</head>
+<body>
+<nav id="toc"><b>Sommaire</b>
+<a href="#intro">Introduction</a><a href="#ensemble">Ensemble Learning</a><a href="#vote">Vote</a><a href="#bagging">Bagging</a><a href="#boosting">Boosting</a><a href="#stacking">Stacking</a><a href="#resultats">Résultats</a><a href="#conclusion">Conclusion</a></nav>
+<main>
+<header><h1>Les méthodes ensemblistes en Machine Learning</h1><p>Réalisé par : Badry Ibrahym · 12/12/2026</p></header>
+
+<section id="intro"><h2>Introduction et problématique</h2><p class="sub">Pourquoi combiner plusieurs modèles ?</p>
+<div class="grid">
+<div class="card"><h4 class="A"><span class="dot A"></span>Prérequis</h4>Apprentissage supervisé, classification et régression, SVM, arbres de décision (DT), réseaux de neurones, métriques d’évaluation.</div>
+<div class="card"><h4 class="B"><span class="dot B"></span>Problématique</h4>Comment les prédictions correctes d’un modèle peuvent-elles compenser les erreurs d’un autre ?</div>
+<div class="card"><h4 class="C"><span class="dot C"></span>Objectif</h4>Améliorer la performance et la robustesse.</div></div>
+<div class="card"><h4>Réflexion : radiographies du thorax (Covid-19)</h4>
+<p style="margin-top:0">2 classes : <b class="B">Covid</b> et <b class="A">Normal</b> · 3 modèles entraînés · jeu de validation de 10 images.</p>
+<div class="wrap"><table id="t10"></table></div></div></section>
+
+<section id="ensemble"><h2>Les méthodes ensemblistes</h2><p class="sub">Ensemble Learning : combiner les résultats de plusieurs modèles</p>
+<div class="grid">
+<div class="card"><h4 class="C">À utiliser si</h4>Données complexes et hétérogènes · réduction de la variance.</div>
+<div class="card"><h4 class="B">À éviter si</h4>Données simples et homogènes · ressources limitées · besoin d’interprétabilité.</div></div>
+<div class="card wrap"><table><tr><th>Méthode</th><th>Exemples</th><th>Catégorie</th><th>Objectif</th></tr>
+<tr><td>Vote</td><td>Majoritaire, pondéré</td><td>Simple / parallèle</td><td>Améliorer la prédiction</td></tr>
+<tr><td>Stacking</td><td>Méta-modèle</td><td>Avancée / parallèle</td><td>Améliorer la performance</td></tr>
+<tr><td>Bagging</td><td>Random Forest</td><td>Avancée / parallèle</td><td>Réduire la variance</td></tr>
+<tr><td>Boosting</td><td>AdaBoost, Gradient Boosting, XGBoost</td><td>Avancée / séquentielle</td><td>Réduire le biais</td></tr></table></div></section>
+
+<section id="vote"><h2>Vote</h2><p class="sub">Agréger les prédictions de plusieurs modèles de base</p>
+<div class="card"><h4>Essayez : cliquez sur un modèle pour changer sa prédiction</h4>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0" id="vb"></div>
+<div class="grid" style="margin-top:14px">
+<div><span class="tag">Majoritaire</span><div class="res" id="vm"></div></div>
+<div><span class="tag">Pondéré · poids 0,4 / 0,4 / 0,2</span><div class="res" id="vw"></div></div>
+<div><span class="tag">Moyenne (régression)</span><div class="res" id="va"></div></div></div></div>
+<pre><i># N modèles de base</i>
+preds = [m.predict(x) for m in models]
+<i># majoritaire</i>   y = mode(preds)
+<i># moyenne</i>       y = sum(preds) / N
+<i># pondéré</i>       y = sum(w[i] * preds[i] for i in range(N))</pre></section>
+
+<section id="bagging"><h2>Bagging</h2><p class="sub">Bootstrap Aggregating : même algorithme, sous-ensembles aléatoires, agrégation</p>
+<div class="card wrap"><svg viewBox="0 0 700 250" width="700">
+<rect class="bx" x="10" y="95" width="110" height="60" rx="10"/><text x="65" y="130" text-anchor="middle">Training dataset</text>
+<g id="bg"></g>
+<rect class="bx" x="560" y="95" width="120" height="60" rx="10" style="stroke:var(--c)"/><text x="620" y="121" text-anchor="middle" class="C">AGGREGATING</text><text x="620" y="140" text-anchor="middle">→ Prédiction</text></svg></div>
+<div class="grid"><div class="card"><span class="dot A"></span><b>Bootstrap</b> : chaque modèle est entraîné sur un sous-ensemble aléatoire.</div>
+<div class="card"><span class="dot C"></span><b>Agrégation</b> : vote majoritaire (moyenne pour la régression). Exemple : Random Forest.</div></div>
+<pre>for i in range(B):
+    S_i = bootstrap(train)        <i># tirage avec remise</i>
+    model[i] = DecisionTree().fit(S_i)
+y = majority_vote([m.predict(x) for m in model])</pre></section>
+
+<section id="boosting"><h2>Boosting</h2><p class="sub">Séquentiel : chaque modèle corrige les erreurs du précédent</p>
+<div class="card"><h4>Le poids des fausses prédictions augmente à chaque itération</h4>
+<svg viewBox="0 0 700 120" width="700" id="bo"></svg>
+<div style="display:flex;gap:10px;align-items:center;margin-top:8px"><button id="bn">Itération suivante →</button><button id="br">Réinitialiser</button><span class="tag" id="bi"></span></div></div>
+<p>Modèles faibles (arbres de décision). Exemples : AdaBoost, Gradient Boosting, XGBoost.</p>
+<pre>w = [1/N] * N
+for t in range(T):
+    h_t = WeakLearner().fit(X, y, sample_weight=w)
+    err = weighted_error(h_t, X, y, w)
+    w[wrong] *= alpha(err)         <i># ↑ erreurs</i>
+    w /= w.sum()</pre></section>
+
+<section id="stacking"><h2>Stacking</h2><p class="sub">Un méta-modèle apprend à combiner les prédictions</p>
+<div class="card wrap"><svg viewBox="0 0 700 240" width="700" id="st"></svg></div>
+<pre>P = [m.fit(X, y).predict(X) for m in base_models]  <i># SVM, KNN, DT</i>
+meta = LogisticRegression().fit(stack(P), y)
+y_final = meta.predict(stack([m.predict(x) for m in base_models]))</pre></section>
+
+<section id="resultats"><h2>Résultats</h2><p class="sub">Étude comparative : accuracy de chaque implémentation</p>
+<div class="card" id="chart"></div>
+<div class="card"><b>Analyse.</b> Le Bagging avec arbre de décision obtient la meilleure performance (99 %). Vote majoritaire, vote pondéré, KNN, SVM et stacking atteignent 96 à 98 %. Le choix dépend du problème et du compromis précision / complexité.</div></section>
+
+<section id="conclusion"><h2>Conclusion</h2>
+<div class="card">L’ensemble learning améliore la performance en combinant plusieurs modèles : les faiblesses de chacun sont compensées, la prédiction est plus robuste.
+<ul><li><b class="A">Vote</b> : agrège les prédictions (majoritaire, pondéré, moyenne).</li><li><b class="C">Bagging</b> : modèles indépendants sur des sous-ensembles aléatoires.</li><li><b class="B">Boosting</b> : modèles séquentiels corrigeant les erreurs.</li><li><b class="D">Stacking</b> : méta-modèle de niveau supérieur.</li></ul></div>
+<p class="sub" style="text-align:center;margin-top:32px">Merci pour votre attention</p></section>
+</main>
+<script>
+const N='http://www.w3.org/2000/svg',$=id=>document.getElementById(id);
+const T=[['Covid','Covid','Normal','Covid'],['Covid','Normal','Covid','Covid'],['Covid','Normal','Normal','Normal'],['Normal','Covid','Normal','Normal'],['Normal','Normal','Covid','Normal'],['Normal','Covid','Covid','Covid'],['Normal','Normal','Normal','Normal'],['Covid','Covid','Normal','Covid'],['Normal','Covid','Covid','Covid'],['Covid','Covid','Normal','Covid']];
+const R=['Covid','Covid','Normal','Normal','Normal','Covid','Normal','Covid','Covid','Covid'];
+const cl=v=>`<b class="${v=='Covid'?'B':'A'}">${v}</b>`;
+$('t10').innerHTML='<tr><th></th><th>Modèle 1</th><th>Modèle 2</th><th>Modèle 3</th><th>Vote</th><th>Classe réelle</th></tr>'+T.map((r,i)=>`<tr><td>Img ${i+1}</td>${r.map(v=>`<td>${cl(v)}</td>`).join('')}<td>${cl(R[i])}</td></tr>`).join('')+'<tr><td>Accuracy</td><td>70 %</td><td>80 %</td><td>60 %</td><td><b>100 %</b></td><td></td></tr>';
+const M=['SVM','KNN','DT'],W=[.4,.4,.2],P=[1,1,0];
+function vote(){$('vb').innerHTML=M.map((m,i)=>`<button class="pill" data-i="${i}">${m} : ${P[i]?'Covid':'Normal'}</button>`).join('');
+const s=P.reduce((a,p)=>a+p,0),w=P.reduce((a,p,i)=>a+p*W[i],0);
+$('vm').innerHTML=cl(s>=2?'Covid':'Normal')+` <small>(${s}/3 votes Covid)</small>`;
+$('vw').innerHTML=cl(w>.5?'Covid':'Normal')+` <small>(score ${w.toFixed(1)})</small>`;
+$('va').innerHTML=`${(s/3).toFixed(2)} <small>P(Covid)</small>`;
+document.querySelectorAll('#vb button').forEach(b=>b.onclick=()=>{P[b.dataset.i]^=1;vote()})}vote();
+function E(p,t,a,x){const e=document.createElementNS(N,t);for(const k in a)e.setAttribute(k,a[k]);if(x)e.textContent=x;p.appendChild(e);return e}
+const bg=$('bg');[0,1,2].forEach(i=>{const y=15+i*80;
+E(bg,'rect',{class:'bx',x:190,y,width:100,height:50,rx:10});E(bg,'text',{x:240,y:y+30,'text-anchor':'middle'},'Subset '+(i+1));
+E(bg,'rect',{class:'bx',x:380,y,width:100,height:50,rx:10,style:'stroke:var(--a)'});E(bg,'text',{x:430,y:y+30,'text-anchor':'middle'},'DT '+(i+1));
+E(bg,'path',{class:'ln',d:`M120 125 C155 125 155 ${y+25} 190 ${y+25}`});E(bg,'path',{class:'ln',d:`M290 ${y+25}H380`});E(bg,'path',{class:'ln',d:`M480 ${y+25} C520 ${y+25} 520 125 560 125`})});
+E(bg,'text',{x:155,y:12,'text-anchor':'middle',class:'tag'},'Bootstrap');
+const bo=$('bo'),X=[0,1,2,3,4,5,6,7],BAD=[2,5];let it=0;
+function boost(){bo.innerHTML='';X.forEach(i=>{const bad=BAD.includes(i),r=8*Math.pow(1.35,bad?it:0)*Math.pow(.97,!bad?it:0);
+E(bo,'circle',{cx:50+i*85,cy:60,r:Math.min(r,26),fill:bad?'var(--b)':'var(--a)',opacity:.85});
+E(bo,'text',{x:50+i*85,y:108,'text-anchor':'middle'},bad?'erreur':'correct')});
+$('bi').textContent='Modèle '+(it+1)+' / 4'}
+$('bn').onclick=()=>{it=Math.min(it+1,3);boost()};$('br').onclick=()=>{it=0;boost()};boost();
+const st=$('st');E(st,'rect',{class:'bx',x:10,y:90,width:100,height:60,rx:10});E(st,'text',{x:60,y:125,'text-anchor':'middle'},'Training dataset');
+M.forEach((m,i)=>{const y=15+i*75;E(st,'path',{class:'ln',d:`M110 120 C150 120 150 ${y+25} 190 ${y+25}`});
+E(st,'rect',{class:'bx',x:190,y,width:100,height:50,rx:10,style:'stroke:var(--a)'});E(st,'text',{x:240,y:y+30,'text-anchor':'middle'},'Modèle '+m);
+E(st,'path',{class:'ln',d:`M290 ${y+25}H350`});E(st,'rect',{class:'bx',x:350,y,width:100,height:50,rx:10});E(st,'text',{x:400,y:y+30,'text-anchor':'middle'},'Prédictions '+(i+1));
+E(st,'path',{class:'ln',d:`M450 ${y+25} C490 ${y+25} 490 120 530 120`})});
+E(st,'rect',{class:'bx',x:530,y:90,width:150,height:60,rx:10,style:'stroke:var(--d)'});E(st,'text',{x:605,y:116,'text-anchor':'middle',class:'D'},'Méta-modèle');E(st,'text',{x:605,y:136,'text-anchor':'middle'},'LogisticRegression');
+const D=[['SVM : C=1, kernel RBF',96],['KNN : k=3',96],['DT',95],['Vote majoritaire',98],['Vote pondéré',98],['Bagging : DT',99],['Boosting : DT',97],['Stacking',97]];
+$('chart').innerHTML=D.map(([n,v])=>`<div class="row"><span>${n}</span><div><div class="bar" style="width:0;${v==99?'background:var(--c)':''}" data-w="${(v-90)*10}%"></div></div><b>${v} %</b></div>`).join('')+'<small style="color:var(--mut)">Échelle de 90 % à 100 %</small>';
+setTimeout(()=>document.querySelectorAll('.bar').forEach(b=>b.style.width=b.dataset.w),200);
+const L=[...document.querySelectorAll('nav a')],S=L.map(a=>document.querySelector(a.hash));
+addEventListener('scroll',()=>{let k=0;S.forEach((s,i)=>{if(s.getBoundingClientRect().top<140)k=i});L.forEach((a,i)=>a.classList.toggle('on',i==k))});
+</script>
+</body>
+</html>
